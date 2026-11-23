@@ -43,5 +43,20 @@ if (typeof url !== 'string' || url.length === 0) {
   process.exit(1);
 }
 
+// The address must be the post itself: an X (or Twitter) status URL, the shape the
+// gate reads. Anything else is a mistake worth failing loudly on here, not later.
+let parsed: URL;
+try {
+  parsed = new URL(url);
+} catch {
+  console.error(`POST.json "url" is not a URL: ${url}`);
+  process.exit(1);
+}
+const host = parsed.hostname.replace(/^www\./, '');
+if ((host !== 'x.com' && host !== 'twitter.com') || !/^\/[^/]+\/status\/[^/]+\/?$/.test(parsed.pathname)) {
+  console.error(`POST.json "url" is not an X post address: ${url}`);
+  process.exit(1);
+}
+
 mkdirSync(outputDir, { recursive: true });
 copyFileSync(postFile, join(outputDir, 'POST.json'));
